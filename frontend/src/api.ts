@@ -19,6 +19,19 @@ export interface InitRequest {
   max_steps?: number
 }
 
+export interface ScreenshotRequest {
+  device_id?: string | null
+}
+
+export interface ScreenshotResponse {
+  success: boolean
+  image: string // base64 encoded PNG
+  width: number
+  height: number
+  is_sensitive: boolean
+  error?: string
+}
+
 export async function initAgent(config?: InitRequest): Promise<{ success: boolean; message: string }> {
   const res = await axios.post('/api/init', config ?? {})
   return res.data
@@ -36,5 +49,10 @@ export async function getStatus(): Promise<StatusResponse> {
 
 export async function resetChat(): Promise<{ success: boolean; message: string }> {
   const res = await axios.post('/api/reset')
+  return res.data
+}
+
+export async function getScreenshot(deviceId?: string | null): Promise<ScreenshotResponse> {
+  const res = await axios.post('/api/screenshot', { device_id: deviceId ?? null })
   return res.data
 }

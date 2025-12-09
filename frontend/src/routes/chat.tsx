@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import * as React from 'react'
 import { useState, useRef, useEffect } from 'react'
-import { sendMessage, initAgent, resetChat, getStatus } from '../api'
+import { sendMessage, initAgent, resetChat, getStatus, getScreenshot, type ScreenshotResponse } from '../api'
 
 export const Route = createFileRoute('/chat')({
   component: ChatComponent,
@@ -22,7 +22,9 @@ function ChatComponent() {
   const [loading, setLoading] = useState(false)
   const [initialized, setInitialized] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [screenshot, setScreenshot] = useState<ScreenshotResponse | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const screenshotFetchingRef = useRef(false)
 
   // 滚动到底部
   const scrollToBottom = () => {
@@ -38,6 +40,36 @@ function ChatComponent() {
     getStatus()
       .then((status) => setInitialized(status.initialized))
       .catch(() => setInitialized(false))
+  }, [])
+
+  // 每 3 秒刷新截图
+  useEffect(() => {
+    const fetchScreenshot = async () => {
+      // 如果有正在进行的请求，跳过本次请求
+      if (screenshotFetchingRef.current) {
+        return
+      }
+
+      screenshotFetchingRef.current = true
+      try {
+        const data = await getScreenshot()
+        if (data.success) {
+          setScreenshot(data)
+        }
+      } catch (e) {
+        console.error('Failed to fetch screenshot:', e)
+      } finally {
+        screenshotFetchingRef.current = false
+      }
+    }
+
+    // 立即获取一次
+    fetchScreenshot()
+
+    // 设置定时器每 3 秒刷新
+    const interval = setInterval(fetchScreenshot, 3000)
+
+    return () => clearInterval(interval)
   }, [])
 
   // 初始化 Agent
@@ -103,7 +135,8 @@ function ChatComponent() {
   }
 
   return (
-    <div className="h-full flex items-center justify-center p-4">
+    <div className="h-full flex items-center justify-center p-4 gap-4">
+      {/* Chatbox */}
       <div className="flex flex-col w-full max-w-2xl h-[600px] border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg bg-white dark:bg-gray-800">
         {/* 头部 */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 rounded-t-2xl">
@@ -210,6 +243,44 @@ function ChatComponent() {
               发送
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Screenshot Display */}
+      <div className="flex flex-col w-full max-w-xs h-[600px] border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg bg-white dark:bg-gray-800 overflow-hidden">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold">屏幕截图</h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">每 3 秒自动刷新</p>
+        </div>
+        <div className="flex-1 flex items-center justify-center p-4 overflow-auto bg-gray-50 dark:bg-gray-900">
+          {screenshot && screenshot.success ? (
+            <div className="relative w-full h-full flex items-center justify-center">
+              <img
+                src={`data:image/png;base64,${screenshot.image}`}
+                alt="Device Screenshot"
+                className="max-w-full max-h-full object-contain rounded-lg shadow-md"
+                style={{
+                  width: screenshot.width > screenshot.height ? '100%' : 'auto',
+                  height: screenshot.width > screenshot.height ? 'auto' : '100%',
+                }}
+              />
+              {screenshot.is_sensitive && (
+                <div className="absolute top-2 right-2 px-2 py-1 bg-yellow-500 text-white text-xs rounded">
+                  敏感内容
+                </div>
+              )}
+            </div>
+          ) : screenshot?.error ? (
+            <div className="text-center text-red-500 dark:text-red-400">
+              <p className="mb-2">截图失败</p>
+              <p className="text-xs">{screenshot.error}</p>
+            </div>
+          ) : (
+            <div className="text-center text-gray-500 dark:text-gray-400">
+              <div className="w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mx-auto mb-2" />
+              <p>加载中...</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
