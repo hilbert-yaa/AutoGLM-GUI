@@ -12,6 +12,14 @@ AutoGLM 手机助手的现代化 Web 图形界面 - 让 AI 自动化操作 Andro
 - **零配置部署** - 支持任何 OpenAI 兼容的 LLM API
 - **ADB 深度集成** - 通过 Android Debug Bridge 直接控制设备
 
+## 📸 界面预览
+
+### 任务开始
+![任务开始](https://github.com/user-attachments/assets/b8cb6fbc-ca5b-452c-bcf4-7d5863d4577a)
+
+### 任务执行完成
+![任务结束](https://github.com/user-attachments/assets/b32f2e46-5340-42f5-a0db-0033729e1605)
+
 ## 🚀 快速开始
 
 ### 前置要求
