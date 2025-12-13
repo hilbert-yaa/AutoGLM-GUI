@@ -158,7 +158,9 @@ class ScrcpyStreamer:
             # Method 3: Remove port forward if exists
             cmd_remove_forward = cmd_base + ["forward", "--remove", f"tcp:{self.port}"]
             process = await asyncio.create_subprocess_exec(
-                *cmd_remove_forward, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                *cmd_remove_forward,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
             )
             await process.wait()
 
