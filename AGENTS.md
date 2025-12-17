@@ -1,6 +1,28 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI coding assistants (such as Cursor or Claude Code) when working with code in this repository.
+
+## Assistant Guidelines
+
+- **Python execution**: Always use `uv`:
+  - Use `uv sync` to install dependencies.
+  - Use `uv run python ...` instead of calling `python` directly.
+  - Use `uv run autoglm-gui ...` to start the backend.
+- **Frontend commands**: Run all frontend commands from the `frontend` directory using `pnpm`.
+- **Do not hardcode secrets**: Never commit or print real API keys; use placeholders like `sk-xxxxx`.
+- **Environment assumptions**:
+  - The project root is `/home/hilbertc/Projects/AI-Phone/AutoGLM-GUI`.
+  - A Python virtual environment may exist at `.venv`, but `uv` is the primary entry point.
+  - ADB is expected to be available on `PATH` (via `platform-tools`).
+- **Preferred changes**: When modifying code, keep the existing architecture and tooling (`uv`, `pnpm`, FastAPI, React) unless the user explicitly requests otherwise.
+- **Secrets and environment variables**:
+  - Store private values (e.g. `MS_API_KEY`) in a `.env` file at the project root (not committed to git).
+  - Use the `init.sh` script in the project root (`source ./init.sh`) to:
+    - Load `.env` and export variables like `MS_API_KEY`.
+    - Activate `.venv` if present.
+    - Add `/home/hilbertc/Projects/AI-Phone/platform-tools` to `PATH`.
+  - When running the app with ModelScope, prefer:
+    - `uv run autoglm-gui --base-url https://api-inference.modelscope.cn/v1 --model ZhipuAI/AutoGLM-Phone-9B --apikey "$MS_API_KEY"`.
 
 ## Project Overview
 
@@ -25,10 +47,11 @@ uv sync
 # Run backend with auto-reload (development)
 uv run autoglm-gui --base-url http://localhost:8080/v1 --reload
 
-# Run backend (production mode)
-uv run autoglm-gui --base-url https://open.bigmodel.cn/api/paas/v4 \
-  --model autoglm-phone \
-  --apikey sk-xxxxx
+# Run backend with ModelScope (production mode)
+uv run autoglm-gui \
+  --base-url https://api-inference.modelscope.cn/v1 \
+  --model ZhipuAI/AutoGLM-Phone-9B \
+  --apikey $MS_API_KEY
 ```
 
 ### Frontend Development
